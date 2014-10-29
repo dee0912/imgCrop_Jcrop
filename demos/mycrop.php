@@ -51,13 +51,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
 
   $(function(){
 
-    $('#cropbox').Jcrop({
+	$('#cropbox').Jcrop({
       aspectRatio: 1,
       onSelect: updateCoords,
 
 	  onChange:   showCoords,
       onSelect:   showCoords,
-      onRelease:  clearCoords
+      onRelease:  clearCoords,
+
+	  bgFade:     true,  //背景平滑过渡	
+      bgOpacity: .6,
+      setSelect: [ 60, 70, 540, 330 ] //遮罩初始坐标
     },function(){
       jcrop_api = this;
     });
@@ -86,38 +90,76 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
 
    function clearCoords()
   {
-    $('#coords input').val('');
+    $('#coords .info').val('');
   };
   
   function checkCoords()
   {
     if (parseInt($('#w').val())) return true;
-    alert('Please select a crop region then press submit.');
+    alert('请先选择选区');
     return false;
   };
 
+
+
 </script>
+
 <style type="text/css">
-  #cropbox {
+
+#cropbox{
+
     background-color: #ccc;
     width: 500px;
     height: 330px;
     font-size: 24px;
     display: block;
-  }
+}
 
- form#coords input {
+form#coords input.info{
 
 	width: 3em;
- }
-  form#coords label {
+}
+
+form#coords label{
 
 	margin-right: 1em;
 	font-weight: bold;
 	color: #900;
 	display: inline;
-  }
+}
 
+form#coords .btn{ display:block; margin-top:10px;}
+
+/* 预览窗口 */
+/* Apply these styles only when #preview-pane has
+   been placed within the Jcrop widget */
+#preview-pane {
+  display: block;
+  position: absolute;
+  z-index: 2000;
+  top: 170px;
+  right: 280px;
+  padding: 6px;
+  border: 1px rgba(0,0,0,.4) solid;
+  background-color: white;
+
+  -webkit-border-radius: 6px;
+  -moz-border-radius: 6px;
+  border-radius: 6px;
+
+  -webkit-box-shadow: 1px 1px 5px 2px rgba(0, 0, 0, 0.2);
+  -moz-box-shadow: 1px 1px 5px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 1px 1px 5px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* The Javascript code will set the aspect ratio of the crop
+   area based on the size of the thumbnail preview,
+   specified here */
+#preview-pane .preview-container {
+  width: 250px;
+  height: 170px;
+  overflow: hidden;
+}
 </style>
 
 </head>
@@ -140,25 +182,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
 		<!-- This is the image we're attaching Jcrop to -->
 		<img src="demo_files/pool.jpg" id="cropbox" />
 
+		<!-- 预览窗口 -->
+		<div id="preview-pane">
+			<div class="preview-container">
+				<img src="demo_files/pool.jpg" class="jcrop-preview" alt="Preview" />
+			</div>
+		</div>
+
 		<!-- This is the form that our event handler fills -->
 		<form id="coords" action="mycrop.php" method="post" onsubmit="return checkCoords();">
-			<label>X1 <input type="text" size="4" id="x1" name="x1" /></label>
-			<label>Y1 <input type="text" size="4" id="y1" name="y1" /></label>
-			<label>X2 <input type="text" size="4" id="x2" name="x2"></label>
-			<label>Y2 <input type="text" size="4" id="y2" name="y2"></label>
-			<label>W  <input type="text" size="4" id="w" name="w" /></label>
-			<label>H  <input type="text" size="4" id="h" name="h" /></label>
+			<label>X1 <input class="info" type="text" size="4" id="x1" name="x1" /></label>
+			<label>Y1 <input class="info" type="text" size="4" id="y1" name="y1" /></label>
+			<label>X2 <input class="info" type="text" size="4" id="x2" name="x2"></label>
+			<label>Y2 <input class="info" type="text" size="4" id="y2" name="y2"></label>
+			<label>W  <input class="info" type="text" size="4" id="w" name="w" /></label>
+			<label>H  <input class="info" type="text" size="4" id="h" name="h" /></label>
 
-			<input type="submit" value="Crop Image" class="btn btn-large btn-inverse" />
+			<input type="submit" value="保存" class="btn btn-large btn-inverse" />
 		</form>
-
-		<p>
-			<b>An example server-side crop script.</b> Hidden form values
-			are set when a selection is made. If you press the <i>Crop Image</i>
-			button, the form will be submitted and a 150x150 thumbnail will be
-			dumped to the browser. Try it!
-		</p>
-
 
 	</div>
 	</div>
