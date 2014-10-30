@@ -7,9 +7,9 @@
  * More info: http://deepliquid.com/content/Jcrop_Implementation_Theory.html
  */
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST')
-{
-	$targ_w = $targ_h = 150; //预览窗口宽高
+if($_SERVER['REQUEST_METHOD'] == 'POST'){
+
+	$targ_w = $targ_h = 180; //保存的目标图片的宽高
 	$jpeg_quality = 90;
 
 	$src = 'demo_files/pool.jpg';
@@ -35,9 +35,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
 }
 
 // If not a POST request, display page below:
-
-?><!DOCTYPE html>
-<html lang="en">
+?>
+<!DOCTYPE html>
+<html>
 <head>
   <title>Live Cropping Demo</title>
   <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
@@ -49,59 +49,92 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
 
 <script type="text/javascript">
 
-  $(function(){
+	$(function(){
 
-	$('#cropbox').Jcrop({
-      aspectRatio: 1,
-      onSelect: updateCoords,
+		//预览图
+		var jcrop_api,
+			boundx, //原图宽
+			boundy, //原图高
 
-	  onChange:   showCoords,
-      onSelect:   showCoords,
-      onRelease:  clearCoords,
+		// 设置预览框和预览图信息
+		$preview = $('#preview-pane'),
+		$pcnt = $('#preview-pane .preview-container'),
+		$pimg = $('#preview-pane .preview-container img'),
 
-	  bgFade:     true,  //背景平滑过渡	
-      bgOpacity: .6,
-      setSelect: [ 60, 70, 540, 330 ] //遮罩初始坐标
-    },function(){
-      jcrop_api = this;
-    });
+		xsize = $pcnt.width(),
+		ysize = $pcnt.height();
+		
+		console.log('init',[xsize,ysize]);	
 
-  });
+		//事件
+		$('#cropbox').Jcrop({
 
-  function updateCoords(c)
-  {
-    $('#x1').val(c.x1);
-    $('#y1').val(c.y1);
-    $('#x2').val(c.x2);
-    $('#y2').val(c.y2);
-    $('#w').val(c.w);
-    $('#h').val(c.h);
-  };
+		  aspectRatio: 1, //选框宽高比 width/height
+		  onSelect: coordsAndPreview, //onSelect选框选定时的事件,包括坐标信息和预览图
 
-  function showCoords(c)
-  {
-    $('#x1').val(c.x);
-    $('#y1').val(c.y);
-    $('#x2').val(c.x2);
-    $('#y2').val(c.y2);
-    $('#w').val(c.w);
-    $('#h').val(c.h);
-  };
+		  onChange:   coordsAndPreview, //onChange选框改变时的事件,包括坐标信息和预览图
+		  onRelease:  clearCoords, //onRelease取消选框时的事件,清除坐标信息
 
-   function clearCoords()
-  {
-    $('#coords .info').val('');
-  };
-  
-  function checkCoords()
-  {
-    if (parseInt($('#w').val())) return true;
-    alert('请先选择选区');
-    return false;
-  };
+		  bgFade:     true,  //bgFade背景平滑过渡	
+		  bgOpacity: .6,  //bgOpacity背景透明度
+		  setSelect: [ 60, 70, 540, 330 ] //setSelect选框初始坐标
+		},function(){
+		 
+		  // 使用API获得原图尺寸 
+		  var bounds = this.getBounds(); //getBounds 获取图片实际尺寸
+		  boundx = bounds[0];
+		  boundy = bounds[1];
+		  // Store the API in the jcrop_api variable
+		  jcrop_api = this;
 
+		  //使用css的position移动预览图至jcrop container
+		 // $preview.appendTo(jcrop_api.ui.holder); //class = "jcrop-holder"
+		});
 
+		function coordsAndPreview(c){
 
+			//坐标信息
+			$('#x1').val(c.x);
+			$('#y1').val(c.y);
+			$('#x2').val(c.x2);
+			$('#y2').val(c.y2);
+			$('#w').val(c.w);
+			$('#h').val(c.h);
+
+			//预览图
+			if (parseInt(c.w) > 0){
+
+				var rx = xsize / c.w;
+				var ry = ysize / c.h;
+
+				$pimg.css({
+					width: Math.round(rx * boundx) + 'px',
+					height: Math.round(ry * boundy) + 'px',
+					marginLeft: '-' + Math.round(rx * c.x) + 'px',
+					marginTop: '-' + Math.round(ry * c.y) + 'px'
+				});
+			}
+		};
+
+		function clearCoords(){
+
+			$('#coords .info').val('');
+		};
+
+		//取消选区按钮
+		$(".btn2").click(function(){
+		
+			jcrop_api.release(); 
+		});
+	
+	});
+
+	function checkCoords(){
+
+		if (parseInt($('#w').val())) return true;
+		alert('请先选择选区');
+		return false;
+	};
 </script>
 
 <style type="text/css">
@@ -128,38 +161,57 @@ form#coords label{
 	display: inline;
 }
 
-form#coords .btn{ display:block; margin-top:10px;}
+.buttons{ margin-top:25px;}
+.btn2{ margin-left:10px;}
 
-/* 预览窗口 */
-/* Apply these styles only when #preview-pane has
-   been placed within the Jcrop widget */
+
+/* 包含文字和预览图的div */
+#bigPreCon{
+
+	display: block;
+	position: absolute;
+	top: 140px;
+	right: 380px;
+}
+/* 预览窗口外围位置和边框 */
 #preview-pane {
-  display: block;
-  position: absolute;
-  z-index: 2000;
-  top: 170px;
-  right: 280px;
-  padding: 6px;
-  border: 1px rgba(0,0,0,.4) solid;
-  background-color: white;
 
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
-  border-radius: 6px;
 
-  -webkit-box-shadow: 1px 1px 5px 2px rgba(0, 0, 0, 0.2);
-  -moz-box-shadow: 1px 1px 5px 2px rgba(0, 0, 0, 0.2);
-  box-shadow: 1px 1px 5px 2px rgba(0, 0, 0, 0.2);
+	z-index: 2000;
+
+	padding: 6px;
+	border: 1px rgba(0,0,0,.4) solid;
+	background-color: white;
+
+	-webkit-border-radius: 6px;
+	-moz-border-radius: 6px;
+	border-radius: 6px;
+
+	-webkit-box-shadow: 1px 1px 5px 2px rgba(0, 0, 0, 0.2);
+	-moz-box-shadow: 1px 1px 5px 2px rgba(0, 0, 0, 0.2);
+	box-shadow: 1px 1px 5px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* The Javascript code will set the aspect ratio of the crop
-   area based on the size of the thumbnail preview,
-   specified here */
+/* 文字 */
+#fonts1,#fonts2{ font-size:12px;}
+#fonts1{
+
+	margin-bottom:5px;
+}
+
+#fonts2{
+
+	margin-top:5px;
+}
+
+/* 预览窗口宽高 */
 #preview-pane .preview-container {
-  width: 250px;
-  height: 170px;
-  overflow: hidden;
+
+	width: 180px;
+	height: 180px;
+	overflow: hidden;
 }
+
 </style>
 
 </head>
@@ -171,34 +223,40 @@ form#coords .btn{ display:block; margin-top:10px;}
 <div class="jc-demo-box">
 
 <div class="page-header">
-<ul class="breadcrumb first">
-  <li><a href="../index.html">Jcrop</a> <span class="divider">/</span></li>
-  <li><a href="../index.html">Demos</a> <span class="divider">/</span></li>
-  <li class="active">Live Demo (Requires PHP)</li>
-</ul>
-<h1>Server-based Cropping Behavior</h1>
+<h1>基于Jcrop的头像剪裁功能</h1>
 </div>
 
 		<!-- This is the image we're attaching Jcrop to -->
 		<img src="demo_files/pool.jpg" id="cropbox" />
 
 		<!-- 预览窗口 -->
-		<div id="preview-pane">
-			<div class="preview-container">
-				<img src="demo_files/pool.jpg" class="jcrop-preview" alt="Preview" />
+		<div id="bigPreCon">
+			<div id="fonts1">
+				这是你的头像图标
+			</div>
+			<div id="preview-pane">
+				<div class="preview-container">
+					<img src="demo_files/pool.jpg" class="jcrop-preview" alt="Preview" />
+				</div>
+			</div>
+			<div id="fonts2">
+				头像尺寸：180x180像素
 			</div>
 		</div>
 
 		<!-- This is the form that our event handler fills -->
 		<form id="coords" action="mycrop.php" method="post" onsubmit="return checkCoords();">
-			<label>X1 <input class="info" type="text" size="4" id="x1" name="x1" /></label>
-			<label>Y1 <input class="info" type="text" size="4" id="y1" name="y1" /></label>
-			<label>X2 <input class="info" type="text" size="4" id="x2" name="x2"></label>
-			<label>Y2 <input class="info" type="text" size="4" id="y2" name="y2"></label>
-			<label>W  <input class="info" type="text" size="4" id="w" name="w" /></label>
-			<label>H  <input class="info" type="text" size="4" id="h" name="h" /></label>
+			<label>X1 <input readonly="readonly" class="info" type="text" size="4" id="x1" name="x1" /></label>
+			<label>Y1 <input readonly="readonly" class="info" type="text" size="4" id="y1" name="y1" /></label>
+			<label>X2 <input readonly="readonly" class="info" type="text" size="4" id="x2" name="x2"></label>
+			<label>Y2 <input readonly="readonly" class="info" type="text" size="4" id="y2" name="y2"></label>
+			<label>W  <input readonly="readonly" class="info" type="text" size="4" id="w" name="w" /></label>
+			<label>H  <input readonly="readonly" class="info" type="text" size="4" id="h" name="h" /></label>
 
-			<input type="submit" value="保存" class="btn btn-large btn-inverse" />
+			<div class="buttons">
+				<input type="submit" value="保存头像" class="btn btn-large btn-inverse" />
+				<input type="button" value="重新选取" class="btn btn-large btn-inverse btn2" />
+			</div>
 		</form>
 
 	</div>
