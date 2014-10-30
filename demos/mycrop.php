@@ -12,7 +12,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 	$targ_w = $targ_h = 180; //保存的目标图片的宽高
 	$jpeg_quality = 90;
 
-	$src = 'demo_files/pool.jpg';
+	$src = $_POST['resourceimg'];
 	$img_r = imagecreatefromjpeg($src);
 	$dst_r = ImageCreateTrueColor( $targ_w, $targ_h ); //建立黑色背景的预览窗口
 
@@ -23,7 +23,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 	//imagejpeg($dst_r,null,$jpeg_quality); //创建预览图
 
 	//方式二.保存图像
-	$filename = "preview/pool".rand().".jpg";
+	$savefile = "preview/";
+	$src = explode(".",$src);
+	$filename = $savefile.rand().".jpg";
 	imagejpeg($dst_r,$filename,$jpeg_quality);
 	echo "<img id='a' src='".$filename."'>";
 
@@ -51,7 +53,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
 	$(function(){
 
-		//预览图
+		//预览图地址
+		$("#preview-pane .jcrop-preview").attr("src",$("#cropbox").attr("src"));
+		
+
 		var jcrop_api,
 			boundx, //原图宽
 			boundy, //原图高
@@ -62,33 +67,39 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 		$pimg = $('#preview-pane .preview-container img'),
 
 		xsize = $pcnt.width(),
-		ysize = $pcnt.height();
-		
+		ysize = $pcnt.height()
+	
 		console.log('init',[xsize,ysize]);	
 
 		//事件
 		$('#cropbox').Jcrop({
 
-		  aspectRatio: 1, //选框宽高比 width/height
-		  onSelect: coordsAndPreview, //onSelect选框选定时的事件,包括坐标信息和预览图
+			aspectRatio: 1, //选框宽高比 width/height
+			onSelect: coordsAndPreview, //onSelect选框选定时的事件,包括坐标信息和预览图
 
-		  onChange:   coordsAndPreview, //onChange选框改变时的事件,包括坐标信息和预览图
-		  onRelease:  clearCoords, //onRelease取消选框时的事件,清除坐标信息
+			onChange:   coordsAndPreview, //onChange选框改变时的事件,包括坐标信息和预览图
+			onRelease:  clearCoords, //onRelease取消选框时的事件,清除坐标信息
 
-		  bgFade:     true,  //bgFade背景平滑过渡	
-		  bgOpacity: .6,  //bgOpacity背景透明度
-		  setSelect: [ 60, 70, 540, 330 ] //setSelect选框初始坐标
-		},function(){
-		 
-		  // 使用API获得原图尺寸 
-		  var bounds = this.getBounds(); //getBounds 获取图片实际尺寸
-		  boundx = bounds[0];
-		  boundy = bounds[1];
-		  // Store the API in the jcrop_api variable
-		  jcrop_api = this;
+			bgFade:     true,  //bgFade背景平滑过渡	
+			bgOpacity: .6,  //bgOpacity背景透明度
+			setSelect: [ 100, 100, 200, 200 ], //setSelect选框初始坐标
 
-		  //使用css的position移动预览图至jcrop container
-		 // $preview.appendTo(jcrop_api.ui.holder); //class = "jcrop-holder"
+			boxWidth:300,  //画布(最大)宽
+			boxHeight:300, //画布(最大)高
+			boundary:0     //边界
+
+			},function(){
+
+				// 使用API获得原图尺寸 
+				var bounds = this.getBounds(); //getBounds 获取图片实际尺寸
+				boundx = bounds[0];
+				boundy = bounds[1];
+
+				// Store the API in the jcrop_api variable
+				jcrop_api = this;
+
+				//使用css的position移动预览图至jcrop container
+				// $preview.appendTo(jcrop_api.ui.holder); //class = "jcrop-holder"
 		});
 
 		function coordsAndPreview(c){
@@ -126,7 +137,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 		
 			jcrop_api.release(); 
 		});
-	
+
+		//把原图片地址加入隐藏域
+		$("#resourceimg").attr("value",$("#cropbox").attr("src"));
 	});
 
 	function checkCoords(){
@@ -142,8 +155,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 #cropbox{
 
     background-color: #ccc;
-    width: 500px;
-    height: 330px;
+/*    width: 500px;*/
+/*    height: 370px;*/
     font-size: 24px;
     display: block;
 }
@@ -226,8 +239,10 @@ form#coords label{
 <h1>基于Jcrop的头像剪裁功能</h1>
 </div>
 
-		<!-- This is the image we're attaching Jcrop to -->
-		<img src="demo_files/pool.jpg" id="cropbox" />
+		<div id="piccon">
+			<!-- 原图标 -->
+			<img src="demo_files/sago.jpg" id="cropbox" />
+		</div>
 
 		<!-- 预览窗口 -->
 		<div id="bigPreCon">
@@ -236,7 +251,7 @@ form#coords label{
 			</div>
 			<div id="preview-pane">
 				<div class="preview-container">
-					<img src="demo_files/pool.jpg" class="jcrop-preview" alt="Preview" />
+					<img class="jcrop-preview" alt="Preview" />
 				</div>
 			</div>
 			<div id="fonts2">
@@ -252,6 +267,8 @@ form#coords label{
 			<label>Y2 <input readonly="readonly" class="info" type="text" size="4" id="y2" name="y2"></label>
 			<label>W  <input readonly="readonly" class="info" type="text" size="4" id="w" name="w" /></label>
 			<label>H  <input readonly="readonly" class="info" type="text" size="4" id="h" name="h" /></label>
+			
+			<input type="hidden" id="resourceimg" name="resourceimg"/>
 
 			<div class="buttons">
 				<input type="submit" value="保存头像" class="btn btn-large btn-inverse" />
