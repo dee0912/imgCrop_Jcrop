@@ -27,7 +27,12 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 	//imagejpeg($dst_r,null,$jpeg_quality); //创建预览图
 
 	//方式二.保存图像
-	$savefile = "preview/";
+	$file = "prewiew";
+	if(!file_exists($file)){
+		
+		mkdir($file);
+	}
+	$savefile = $file."/";
 	$src = explode(".",$src);
 	$filename = $savefile.rand().".jpg";
 	imagejpeg($dst_r,$filename,$jpeg_quality);
@@ -116,8 +121,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 		$("#preview-pane .jcrop-preview").attr("src",$("#simg").attr("src"));
 		
 		var jcrop_api,
-			boundx, //原图宽
-			boundy, //原图高
 
 		// 设置预览框和预览图信息
 		$preview = $('#preview-pane'),
@@ -148,16 +151,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
 			},function(){
 
-				// 使用API获得原图尺寸 
-				var bounds = this.getBounds(); //getBounds 获取图片实际尺寸
-				boundx = bounds[0];
-				boundy = bounds[1];
-
 				// Store the API in the jcrop_api variable
 				jcrop_api = this;
-
-				//使用css的position移动预览图至jcrop container
-				// $preview.appendTo(jcrop_api.ui.holder); //class = "jcrop-holder"
 		});
 
 		function coordsAndPreview(c){
@@ -176,8 +171,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 				var rx = xsize / c.w;
 				var ry = ysize / c.h;
 				
-				//不使用API接口
-				$boundx = $("#simg").width();
+				//缩放后的原始图片尺寸
+				boundx = $("#simg").width();
 				boundy = $("#simg").height();
 
 				$pimg.css({
