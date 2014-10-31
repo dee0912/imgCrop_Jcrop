@@ -51,12 +51,47 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
 <script type="text/javascript">
 
-	$(function(){
+	//window.onload，不使用jQuery的ready方法是因为需要根据在外围框中加载的居中后的原图来确定初始选区的坐标，如果不使用初始选区，可以把此方法改为jQuery的ready方法
+	function wonload(){
 
-		//预览图地址
-		$("#preview-pane .jcrop-preview").attr("src",$("#cropbox").attr("src"));
+		//设置初始选框的宽高，可根据外围框的大小来设置，此案例外围框宽高设置为300，初始选区宽高可以设置为150
+		$areawh = 150;
+
+		//设置初始选框左上坐标
+		if( $("#simg").width() == $("#simg").height() ){
+
+			areaX = ($("#piccon").width() - $areawh)/2;
+			areaY = ($("#piccon").height() - $areawh)/2;
+
+			area2X = ($("#piccon").width() - $areawh)/2 + $areawh;
+			area2Y = ($("#piccon").height() - $areawh)/2 + $areawh;
+
+		}else if( $("#simg").width() > $("#simg").height() ){ //当原图宽 > 高
 		
+			//如果外围框中原图高(经过缩放)小于150，就给一个更小的选区高
+			$areawh > $("#simg").height()?$areawh = 100:$areawh;
 
+			
+			areaX = ($("#piccon").width() - $areawh)/2;
+			areaY = ($("#simg").height() - $areawh)/2;
+
+			area2X = ($("#piccon").width() - $areawh)/2 + $areawh;
+			area2Y = ($("#simg").height() - $areawh)/2 + $areawh;
+
+		}else{ //当原图宽 < 高
+		
+			$areawh > $("#simg").width()?$areawh = 100:$areawh;
+			
+			areaX = ($("#simg").width() - $areawh)/2;
+			areaY = ($("#piccon").height() - $areawh)/2;
+
+			area2X = ($("#simg").width() - $areawh)/2 + $areawh;
+			area2Y = ($("#piccon").height() - $areawh)/2 + $areawh;
+		}
+		
+		//预览图地址
+		$("#preview-pane .jcrop-preview").attr("src",$("#simg").attr("src"));
+		
 		var jcrop_api,
 			boundx, //原图宽
 			boundy, //原图高
@@ -69,10 +104,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 		xsize = $pcnt.width(),
 		ysize = $pcnt.height()
 	
-		console.log('init',[xsize,ysize]);	
+		//console.log('init',[xsize,ysize]);	
 
 		//事件
-		$('#cropbox').Jcrop({
+		$('#simg').Jcrop({
 
 			aspectRatio: 1, //选框宽高比 width/height
 			onSelect: coordsAndPreview, //onSelect选框选定时的事件,包括坐标信息和预览图
@@ -82,7 +117,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
 			bgFade:     true,  //bgFade背景平滑过渡	
 			bgOpacity: .6,  //bgOpacity背景透明度
-			setSelect: [ 100, 100, 200, 200 ], //setSelect选框初始坐标
+			setSelect: [ areaX, areaY, area2X, area2Y ], //setSelect选框初始坐标
 
 			boxWidth:300,  //画布(最大)宽
 			boxHeight:300, //画布(最大)高
@@ -139,8 +174,48 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 		});
 
 		//把原图片地址加入隐藏域
-		$("#resourceimg").attr("value",$("#cropbox").attr("src"));
-	});
+		$("#resourceimg").attr("value",$("#simg").attr("src"));
+
+	}
+
+	window.onload = wonload;
+
+	
+	//原图加载完之后调用
+	function picsize(){ 
+
+		//在原图外围框中，如果原图宽高比为1，则缩放至和外围框一样的尺寸
+		if( $("#simg").width() == $("#simg").height() ){
+
+			$("#simg").width($("#piccon").width());
+			$("#simg").height($("#piccon").height());
+
+		}else if( $("#simg").width() > $("#simg").height() ){ //当原图宽 > 高
+		
+			$("#simg").width($("#piccon").width());
+
+			//jquery.Jcrop.js line:1654 baseClass: 'jcrop',
+			//line:332
+			$(".jcrop-holder").css({
+				"position":"absolute",
+					"top":"50%",
+					"left":0,
+					"margin-top":-($("#simg").height()/2)
+			});
+
+		}else{ //当原图宽 < 高
+		
+			$("#simg").height($("#piccon").height());
+
+			//机制？
+			$(".jcrop-holder").css({
+				"position":"absolute",
+					"top":0,
+					"left":"50%",
+					"margin-left":-($("#simg").width()/2)
+			});
+		}
+	}
 
 	function checkCoords(){
 
@@ -151,12 +226,20 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 </script>
 
 <style type="text/css">
+/*原图外围框*/
+#piccon{
 
-#cropbox{
+	border:1px #b2b2b2 solid;
+	width:300px;
+	height:300px;
+	position:relative;
+/*	margin-left:50px;*/
+}
+
+
+#simg{
 
     background-color: #ccc;
-/*    width: 500px;*/
-/*    height: 370px;*/
     font-size: 24px;
     display: block;
 }
@@ -241,7 +324,7 @@ form#coords label{
 
 		<div id="piccon">
 			<!-- 原图标 -->
-			<img src="demo_files/sago.jpg" id="cropbox" />
+			<img src="demo_files/pic1.jpg" id="simg" onload="picsize()" />
 		</div>
 
 		<!-- 预览窗口 -->
