@@ -152,6 +152,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
 				var rx = xsize / c.w;
 				var ry = ysize / c.h;
+				
+				//不使用API接口
+				$boundx = $("#simg").width();
+				boundy = $("#simg").height();
 
 				$pimg.css({
 					width: Math.round(rx * boundx) + 'px',
@@ -324,7 +328,7 @@ form#coords label{
 
 		<div id="piccon">
 			<!-- 原图标 -->
-			<img src="demo_files/pic1.jpg" id="simg" onload="picsize()" />
+			<img src="demo_files/pic3.jpg" id="simg" onload="picsize()" />
 		</div>
 
 		<!-- 预览窗口 -->
