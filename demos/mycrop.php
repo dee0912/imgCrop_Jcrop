@@ -12,11 +12,15 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 	$targ_w = $targ_h = 180; //保存的目标图片的宽高
 	$jpeg_quality = 90;
 
+	//原图地址
 	$src = $_POST['resourceimg'];
+	//缩放值
+	$scalls = $_POST['scalls'];
+
 	$img_r = imagecreatefromjpeg($src);
 	$dst_r = ImageCreateTrueColor( $targ_w, $targ_h ); //建立黑色背景的预览窗口
 
-	imagecopyresampled($dst_r,$img_r,0,0,$_POST['x1'],$_POST['y1'],$targ_w,$targ_h,$_POST['w'],$_POST['h']); //重采样拷贝部分图像并调整大小
+	imagecopyresampled($dst_r,$img_r,0,0,$scalls*$_POST['x1'],$scalls*$_POST['y1'],$targ_w,$targ_h,$scalls*$_POST['w'],$scalls*$_POST['h']); //重采样拷贝部分图像并调整大小
 
 	//方式一.直接输出图像
 	//header('Content-type: image/jpeg');
@@ -43,11 +47,11 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 <head>
   <title>Live Cropping Demo</title>
   <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
-  <script src="../js/jquery.min.js"></script>
-  <script src="../js/jquery.Jcrop.js"></script>
-  <link rel="stylesheet" href="demo_files/main.css" type="text/css" />
-  <link rel="stylesheet" href="demo_files/demos.css" type="text/css" />
-  <link rel="stylesheet" href="../css/jquery.Jcrop.css" type="text/css" />
+  <script src="js/jquery.min.js"></script>
+  <script src="js/jquery.Jcrop.js"></script>
+  <link rel="stylesheet" href="css/main.css" type="text/css" />
+  <link rel="stylesheet" href="css/demos.css" type="text/css" />
+  <link rel="stylesheet" href="css/jquery.Jcrop.css" type="text/css" />
 
 <script type="text/javascript">
 
@@ -57,6 +61,15 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 		//设置初始选框的宽高，可根据外围框的大小来设置，此案例外围框宽高设置为300，初始选区宽高可以设置为150
 		$areawh = 150;
 
+		//获取图片的原始尺寸
+		var screenImage = $("#simg");
+
+		var theImage = new Image();
+		theImage.src = screenImage.attr("src");
+
+		var imageWidth = theImage.width;
+		var imageHeight = theImage.height;
+		
 		//设置初始选框左上坐标
 		if( $("#simg").width() == $("#simg").height() ){
 
@@ -65,6 +78,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
 			area2X = ($("#piccon").width() - $areawh)/2 + $areawh;
 			area2Y = ($("#piccon").height() - $areawh)/2 + $areawh;
+
+			//进行缩放后要把图片原始尺寸的缩放值传递给PHP
+			$scalls = imageWidth / $("#simg").width();
+			$("#scalls").val($scalls);
 
 		}else if( $("#simg").width() > $("#simg").height() ){ //当原图宽 > 高
 		
@@ -78,6 +95,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 			area2X = ($("#piccon").width() - $areawh)/2 + $areawh;
 			area2Y = ($("#simg").height() - $areawh)/2 + $areawh;
 
+			$scalls = theImage.height / $("#simg").height();
+			$("#scalls").val($scalls);
+
 		}else{ //当原图宽 < 高
 		
 			$areawh > $("#simg").width()?$areawh = 100:$areawh;
@@ -87,6 +107,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
 			area2X = ($("#simg").width() - $areawh)/2 + $areawh;
 			area2Y = ($("#piccon").height() - $areawh)/2 + $areawh;
+
+			$scalls =  imageWidth / $("#simg").width();
+			$("#scalls").val($scalls);
 		}
 		
 		//预览图地址
@@ -328,7 +351,7 @@ form#coords label{
 
 		<div id="piccon">
 			<!-- 原图标 -->
-			<img src="demo_files/pic3.jpg" id="simg" onload="picsize()" />
+			<img src="images/pic1.jpg" id="simg" onload="picsize()" />
 		</div>
 
 		<!-- 预览窗口 -->
@@ -355,7 +378,10 @@ form#coords label{
 			<label>W  <input readonly="readonly" class="info" type="text" size="4" id="w" name="w" /></label>
 			<label>H  <input readonly="readonly" class="info" type="text" size="4" id="h" name="h" /></label>
 			
+			<!-- 原图地址传递给PHP -->
 			<input type="hidden" id="resourceimg" name="resourceimg"/>
+			<!-- 缩放比传递给PHP -->
+			<input type="hidden" id="scalls" name="scalls"/>
 
 			<div class="buttons">
 				<input type="submit" value="保存头像" class="btn btn-large btn-inverse" />
