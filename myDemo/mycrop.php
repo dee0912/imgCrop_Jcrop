@@ -66,7 +66,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 		//设置初始选框的宽高，可根据外围框的大小来设置，此案例外围框宽高设置为300，初始选区宽高可以设置为150
 		$areawh = 150;
 
-		//获取图片的原始尺寸
+		//获取图片的原始尺寸，为了计算缩放比
 		var screenImage = $("#simg");
 
 		var theImage = new Image();
@@ -75,7 +75,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 		var imageWidth = theImage.width;
 		var imageHeight = theImage.height;
 		
-		//设置初始选框左上坐标
+		//设置初始选框左上坐标，要先获得缩放后的宽和高
 		if( $("#simg").width() == $("#simg").height() ){
 
 			areaX = ($("#piccon").width() - $areawh)/2;
@@ -226,7 +226,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 			});
 
 		}else{ //当原图宽 < 高
-		
+	
 			$("#simg").height($("#piccon").height());
 
 			//机制？
